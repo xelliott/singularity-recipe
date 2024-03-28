@@ -1,0 +1,38 @@
+Bootstrap: docker
+From: ubuntu:22.04
+
+%post
+    export TZ=America/Chicago
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+    apt-get update && \
+    apt-get install -y git wget sudo vim neovim environment-modules tcl texlive-latex-recommended texlive-fonts-recommended fonts-dejavu fonts-stix fonts-urw-base35 fonts-texgyre && \
+    apt-get install -y ghostscript ps2eps xpdf  && \
+    apt-get install -y black python3-ipykernel  && \
+    rm -rf /var/lib/apt/lists/*
+
+    arch=$(uname -m)
+
+    if [ "${arch}" = "x86_64" ]; then \
+        vscode_arch="x64"; \
+    elif [ "${arch}" = "aarch64" ]; then \
+        vscode_arch="arm64"; \
+    elif [ "${arch}" = "armv7l" ]; then \
+        vscode_arch="armhf"; \
+    fi 
+
+    RELEASE_TAG=4.21.2
+    OPENVSCODE_SERVER_PREFIX="/usr/local"
+    OPENVSCODE_SERVER_ROOT="/usr/local/code-server"
+    wget -O /tmp/coder.tar.gz https://github.com/coder/code-server/releases/download/v$RELEASE_TAG/code-server-$RELEASE_TAG-linux-amd64.tar.gz
+    tar -xzf /tmp/coder.tar.gz -C ${OPENVSCODE_SERVER_PREFIX}
+    ln -s ${OPENVSCODE_SERVER_PREFIX}/code-server-${RELEASE_TAG}-linux-amd64 ${OPENVSCODE_SERVER_ROOT}
+    rm -f /tmp/openvscode.tar.gz
+
+
+%environment
+    export LANG=C.UTF-8
+    export LC_ALL=C.UTF-8
+    OPENVSCODE_SERVER_ROOT="/usr/local/code-server"
+    export OPENVSCODE_SERVER_ROOT=${OPENVSCODE_SERVER_ROOT}
+    export PATH="${PATH}:${OPENVSCODE_SERVER_ROOT}/bin"
+
